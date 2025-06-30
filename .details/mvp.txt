@@ -1,0 +1,77 @@
+RelayTalk – Distributed Real-Time Chat Platform
+
+RelayTalk is a scalable, real-time messaging platform modeled after modern communication tools like Discord. It supports direct messaging with robust offline delivery, synchronized presence states, persistent history, and a responsive web client. Built from the ground up to showcase distributed system design and backend-focused development, RelayTalk is optimized for both performance and reliability under real-world network conditions.
+Key Capabilities
+🧵 Real-Time Direct Messaging
+
+Users can exchange messages in real-time through persistent WebSocket connections. Messages include metadata such as timestamps, sender information, delivery status, and device context. Typing indicators, read receipts, and message editing/deletion (future scope) can be layered on top.
+🌐 Multi-Device Session Awareness
+
+Each user session supports multiple active connections (e.g., browser tabs or devices). WebSocket pub/sub patterns ensure all connected clients for a user are synchronized with message streams, state updates, and presence changes.
+📦 Offline Message Queueing and Delivery
+
+Messages sent to offline users are not lost. Instead, they're routed through a message broker (e.g., RabbitMQ or NATS), queued with metadata, and persistently stored. When the user reconnects, their queue is flushed and synchronized to their active session(s) in order.
+💾 Persistent Message History
+
+All conversations are stored in a relational database with full indexing for fast retrieval. Conversations support timestamp-based queries, unread message tracking, message history pagination, and server-side search.
+🔄 Reliable Delivery & Status Tracking
+
+Each message lifecycle is tracked from “sent” to “queued,” “delivered,” and (if implemented) “read.” Status updates propagate to all user devices and are reflected in the UI in real time.
+🔊 Presence & Live Status
+
+User presence is tracked using Redis or a distributed in-memory store. Statuses such as "online," "idle," "offline," and "in-message" are dynamically updated and broadcast across all connected clients.
+System Architecture
+
+RelayTalk separates client and server responsibilities across cleanly defined service boundaries. The backend is written in Go, emphasizing concurrency, performance, and modularity. The frontend is built with React, delivering a responsive and state-aware chat UI.
+🔧 Backend Highlights
+
+    WebSocket Gateway: Manages persistent user connections and routes events.
+
+    Message Broker: Queues messages during downtime or congestion. Supports at-least-once delivery semantics.
+
+    SQL Database: Stores messages, users, conversation metadata, and delivery status.
+
+    Redis: Maintains presence info, session metadata, and real-time pub/sub events.
+
+🌍 Multi-Region Design (Planned)
+
+RelayTalk is built with multi-region deployment in mind. Message delivery, storage, and synchronization are decoupled to allow for eventual regional federation and fallback paths.
+Frontend UX Goals
+
+    Direct Chat Interface: Threaded, timestamped chat with user avatars and dynamic scroll behavior.
+
+    Delivery Feedback: Visual markers for sent, delivered, and queued messages.
+
+    Presence Awareness: Real-time updates when users come online or go offline.
+
+    Optimistic UI Updates: Messages appear in the chat window immediately, even before delivery is confirmed.
+
+Technical Goals
+
+    Design a scalable messaging backend that cleanly separates concerns: delivery logic, persistence, presence, and connection management.
+
+    Implement real-time synchronization across user devices using WebSockets and pub/sub infrastructure.
+
+    Handle offline edge cases with queueing strategies, backpressure handling, and reconnection flows.
+
+    Use SQL efficiently for complex queries: message history retrieval, unread counts, last-message previews, etc.
+
+    Create a foundation for future features like voice/video integration, group messaging, and bots.
+
+Why RelayTalk?
+
+RelayTalk is more than a typical CRUD+auth fullstack app. It serves as a capstone project to demonstrate:
+
+    Distributed messaging & event systems
+
+    Asynchronous communication patterns
+
+    Stateless service design with shared state sync
+
+    Horizontal scalability via decoupled microservices
+
+    WebSocket-based infrastructure and pub/sub modeling
+
+    Real-time frontend synchronization beyond REST APIs
+
+By building a project like RelayTalk, engineers gain experience with the fundamental components of production-grade messaging systems and lay the groundwork for more advanced platforms—such as collaborative tools, multiplayer games, or community platforms.
