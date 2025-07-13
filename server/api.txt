@@ -1,0 +1,3 @@
+POST /register
+POST /login
+POST /messages -> 

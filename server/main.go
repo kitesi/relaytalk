@@ -37,7 +37,8 @@ func main() {
 
 	http.HandleFunc("/register", handlers.Register(store))
 	http.HandleFunc("/login", handlers.Login(store))
-	http.HandleFunc("/protected-ping", handlers.ProtectedPing(store))
+	http.HandleFunc("/protected-ping", handlers.AuthMiddleware(store, handlers.ProtectedPing(store)))
+	http.HandleFunc("/messages", handlers.AuthMiddleware(store, handlers.SendMessage(store)))
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))

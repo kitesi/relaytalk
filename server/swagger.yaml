@@ -1,0 +1,89 @@
+openapi: 3.0.4
+info:
+  title: Sample API
+  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
+  version: 0.1.9
+
+servers:
+  - url: http://api.example.com/v1
+    description: Optional server description, e.g. Main (production) server
+  - url: http://staging-api.example.com
+    description: Optional server description, e.g. Internal staging server for testing
+
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      responses:
+        "500": # status code
+          description: Internal Server Error
+          content:
+            # just a string message
+            text/plain:
+              schema:
+                type: string
+                example: "User exists or DB error"
+        "200": # status code
+          description: User registered successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "User registered successfully"
+        requestBody:
+          content:
+            application/json:
+            schema:
+              type: object
+              properties:
+              username:
+                type: string
+                example: "john_doe"
+              password:
+                type: string
+                example: "securepassword123"
+              email:
+                type: string
+                example: "test@example.com"
+              required:
+                - username
+                - password
+                - email
+  /login:
+    post:
+      summary: Register a new user
+      responses:
+        "401": # status code
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Unauthorized access"
+        "500": # status code
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Error generating token"
+        requestBody:
+          content:
+            application/json:
+            schema:
+            type: object
+            properties:
+              username:
+                type: string
+                example: "john_doe"
+              password:
+                type: string
+                example: "securepassword123"
+              email:
+                type: string
+                example: "test@example.com"
+            required:
+              - password
+              - oneOf:
+                  - username
+                  - email

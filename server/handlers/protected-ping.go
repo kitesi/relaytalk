@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/kitesi/relaytalk/db"
 )
@@ -15,6 +16,8 @@ func ProtectedPing(store *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		w.Write([]byte("pong from protected endpoint, user ID: " + string(userID)))
+		userIdStr := strconv.Itoa(userID)
+
+		w.Write([]byte("pong from protected endpoint, user ID: " + userIdStr))
 	}
 }
