@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/kitesi/relaytalk/api"
 	"github.com/kitesi/relaytalk/db"
-	"github.com/kitesi/relaytalk/handlers"
 )
 
 func main() {
@@ -37,16 +37,8 @@ func main() {
 	store := db.New(pool)
 
 	r := chi.NewRouter()
-
-	r.Post("/register", handlers.Register(store))
-	r.Post("/login", handlers.Login(store))
-	r.Get("/protected-ping", handlers.AuthMiddleware(store, handlers.ProtectedPing(store)))
-	r.Post("/messages", handlers.AuthMiddleware(store, handlers.SendMessage(store)))
-
-	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("pong"))
-	})
+	api.RegisterRoutes(store, r)
 
 	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }

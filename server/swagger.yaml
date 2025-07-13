@@ -179,12 +179,166 @@ paths:
                                         type: string
                                         example: 'Unauthorized access'
 
-    /messages:
+    /servers:
+        post:
+            summary: Create a new server
+            description: Create a new server with a name and optional description
+            security:
+                - BearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                    description: Name of the server
+                                    example: 'My Server'
+                                description:
+                                    type: string
+                                    description: Optional description of the server
+                                    example: 'This is my personal server'
+                            required:
+                                - name
+            responses:
+                '201':
+                    description: Server created successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Server created successfully'
+                '400':
+                    description: Bad request - missing required fields
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Name is required'
+                '401':
+                    description: Unauthorized - missing or invalid token
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Failed to create server'
+
+    /servers/{serverId}/channels:
+        post:
+            summary: Create a new channel in a server
+            description: Create a new channel within a server by its ID
+            security:
+                - BearerAuth: []
+            parameters:
+                - name: serverId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+                  description: ID of the server to create the channel in
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                    description: Name of the channel
+                                    example: 'general'
+                                description:
+                                    type: string
+                                    description: Optional description of the channel
+                                    example: 'General discussion channel'
+                            required:
+                                - name
+            responses:
+                '201':
+                    description: Channel created successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Channel created successfully'
+                '400':
+                    description: Bad request - missing required fields
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Name is required'
+                '401':
+                    description: Unauthorized - missing or invalid token
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Unauthorized'
+                '404':
+                    description: Not found - server does not exist
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Server not found'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Failed to create channel'
+
+    /channels/{channelId}/messages:
         post:
             summary: Send a message
             description: Send a message to a specific channel
             security:
                 - BearerAuth: []
+            parameters:
+                - name: channelId
+                  in: path
+                  required: true
+                  schema:
+                      type: integer
+                  description: ID of the channel to send message to
             requestBody:
                 required: true
                 content:

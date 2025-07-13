@@ -1,12 +1,18 @@
-package handlers
+package messages
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"encoding/json"
-
+	. "github.com/kitesi/relaytalk/api/routes/auth"
 	"github.com/kitesi/relaytalk/db"
+	. "github.com/kitesi/relaytalk/utils"
 )
+
+type CreateMessageRequest struct {
+	ChannelID int    `json:"channel_id"`
+	Content   string `json:"content"`
+}
 
 func SendMessage(store *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -17,10 +23,7 @@ func SendMessage(store *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		var req struct {
-			ChannelID int    `json:"channel_id"`
-			Content   string `json:"content"`
-		}
+		var req CreateMessageRequest
 
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -34,7 +37,7 @@ func SendMessage(store *db.Queries) http.HandlerFunc {
 		})
 
 		if err != nil {
-			sendJsonError(w, http.StatusInternalServerError, "Failed to send message")
+			SendJsonError(w, http.StatusInternalServerError, "Failed to send message")
 			return
 		}
 
@@ -45,7 +48,7 @@ func SendMessage(store *db.Queries) http.HandlerFunc {
 		}
 
 		if err := json.NewEncoder(w).Encode(response); err != nil {
-			sendJsonError(w, http.StatusInternalServerError, "Failed to encode response")
+			SendJsonError(w, http.StatusInternalServerError, "Failed to encode response")
 			return
 		}
 	}

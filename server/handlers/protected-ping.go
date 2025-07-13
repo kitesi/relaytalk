@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	. "github.com/kitesi/relaytalk/api/routes/auth"
 	"github.com/kitesi/relaytalk/db"
+	. "github.com/kitesi/relaytalk/utils"
 )
 
 func ProtectedPing(store *db.Queries) http.HandlerFunc {
@@ -12,7 +14,7 @@ func ProtectedPing(store *db.Queries) http.HandlerFunc {
 		userID, ok := GetUserIDFromContext(r.Context())
 
 		if !ok {
-			sendJsonError(w, http.StatusUnauthorized, "Unauthorized access")
+			SendJsonError(w, http.StatusUnauthorized, "Unauthorized access")
 			return
 		}
 
