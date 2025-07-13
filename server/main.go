@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/kitesi/relaytalk/db"
@@ -35,12 +36,14 @@ func main() {
 	defer pool.Close()
 	store := db.New(pool)
 
-	http.HandleFunc("/register", handlers.Register(store))
-	http.HandleFunc("/login", handlers.Login(store))
-	http.HandleFunc("/protected-ping", handlers.AuthMiddleware(store, handlers.ProtectedPing(store)))
-	http.HandleFunc("/messages", handlers.AuthMiddleware(store, handlers.SendMessage(store)))
+	r := chi.NewRouter()
 
-	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+	r.Post("/register", handlers.Register(store))
+	r.Post("/login", handlers.Login(store))
+	r.Get("/protected-ping", handlers.AuthMiddleware(store, handlers.ProtectedPing(store)))
+	r.Post("/messages", handlers.AuthMiddleware(store, handlers.SendMessage(store)))
+
+	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
 	})
 

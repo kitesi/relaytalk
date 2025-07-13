@@ -56,14 +56,14 @@ func AuthMiddleware(store *db.Queries, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Missing or invalid Authorization header", http.StatusUnauthorized)
+			sendJsonError(w, http.StatusUnauthorized, "Missing or invalid Authorization header")
 			return
 		}
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := ValidateJWT(tokenStr)
 
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			sendJsonError(w, http.StatusUnauthorized, "Invalid token")
 			return
 		}
 
@@ -91,7 +91,7 @@ func Register(store *db.Queries) http.HandlerFunc {
 		req.Username = strings.TrimSpace(req.Username)
 
 		if req.Username == "" || req.Password == "" || req.Email == "" {
-			http.Error(w, "Invalid input", http.StatusBadRequest)
+			sendJsonError(w, http.StatusBadRequest, "Username, password, and email are required")
 			return
 		}
 
@@ -104,11 +104,13 @@ func Register(store *db.Queries) http.HandlerFunc {
 		})
 
 		if err != nil {
-			http.Error(w, "User exists or DB error", http.StatusInternalServerError)
+			sendJsonError(w, http.StatusInternalServerError, "User already exists or database error")
 			return
 		}
 
-		w.Write([]byte("User registered successfully"))
+		sendJsonResponse(w, http.StatusCreated, map[string]string{
+			"message": "User registered successfully",
+		})
 	}
 }
 
@@ -121,12 +123,12 @@ func Login(store *db.Queries) http.HandlerFunc {
 		var passwordHash string
 
 		if req.Username == "" && req.Email == "" {
-			http.Error(w, "Username or email required", http.StatusBadRequest)
+			sendJsonError(w, http.StatusBadRequest, "Username or email required")
 			return
 		}
 
 		if req.Username != "" && req.Email != "" {
-			http.Error(w, "Use either username or email, not both", http.StatusBadRequest)
+			sendJsonError(w, http.StatusBadRequest, "Please provide either username or email, not both")
 			return
 		}
 
@@ -134,7 +136,7 @@ func Login(store *db.Queries) http.HandlerFunc {
 			user, err := store.GetUserByUsername(r.Context(), req.Username)
 
 			if err != nil {
-				http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+				sendJsonError(w, http.StatusUnauthorized, "Invalid credentials")
 				return
 			}
 
@@ -144,7 +146,7 @@ func Login(store *db.Queries) http.HandlerFunc {
 			user, err := store.GetUserByEmail(r.Context(), req.Email)
 
 			if err != nil {
-				http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+				sendJsonError(w, http.StatusUnauthorized, "Invalid credentials")
 				return
 			}
 
@@ -153,18 +155,19 @@ func Login(store *db.Queries) http.HandlerFunc {
 		}
 
 		if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(req.Password)); err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			sendJsonError(w, http.StatusUnauthorized, "Invalid credentials")
 			return
 		}
 
 		token, err := GenerateJWT(int(userID))
 
 		if err != nil {
-			http.Error(w, "Error generating token", http.StatusInternalServerError)
+			sendJsonError(w, http.StatusInternalServerError, "Error generating token")
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"token": token})
+		sendJsonResponse(w, http.StatusOK, map[string]string{
+			"token": token,
+		})
 	}
 }

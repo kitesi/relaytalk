@@ -34,7 +34,7 @@ func SendMessage(store *db.Queries) http.HandlerFunc {
 		})
 
 		if err != nil {
-			http.Error(w, "Failed to send message: "+err.Error(), http.StatusInternalServerError)
+			sendJsonError(w, http.StatusInternalServerError, "Failed to send message")
 			return
 		}
 
@@ -45,7 +45,7 @@ func SendMessage(store *db.Queries) http.HandlerFunc {
 		}
 
 		if err := json.NewEncoder(w).Encode(response); err != nil {
-			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			sendJsonError(w, http.StatusInternalServerError, "Failed to encode response")
 			return
 		}
 	}

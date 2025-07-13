@@ -1,89 +1,285 @@
 openapi: 3.0.4
 info:
-  title: Sample API
-  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
-  version: 0.1.9
+    title: RelayTalk API
+    description: API for RelayTalk messaging application
+    version: 1.0.0
 
 servers:
-  - url: http://api.example.com/v1
-    description: Optional server description, e.g. Main (production) server
-  - url: http://staging-api.example.com
-    description: Optional server description, e.g. Internal staging server for testing
+    - url: http://localhost:8080
+      description: Development server
 
 paths:
-  /register:
-    post:
-      summary: Register a new user
-      responses:
-        "500": # status code
-          description: Internal Server Error
-          content:
-            # just a string message
-            text/plain:
-              schema:
-                type: string
-                example: "User exists or DB error"
-        "200": # status code
-          description: User registered successfully
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "User registered successfully"
-        requestBody:
-          content:
-            application/json:
-            schema:
-              type: object
-              properties:
-              username:
-                type: string
-                example: "john_doe"
-              password:
-                type: string
-                example: "securepassword123"
-              email:
-                type: string
-                example: "test@example.com"
-              required:
-                - username
-                - password
-                - email
-  /login:
-    post:
-      summary: Register a new user
-      responses:
-        "401": # status code
-          description: Unauthorized
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "Unauthorized access"
-        "500": # status code
-          description: Internal Server Error
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "Error generating token"
-        requestBody:
-          content:
-            application/json:
-            schema:
+    /ping:
+        get:
+            summary: Health check endpoint
+            description: Simple health check to verify the server is running
+            responses:
+                '200':
+                    description: Server is running
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'pong'
+
+    /register:
+        post:
+            summary: Register a new user
+            description: Create a new user account with username, password, and email
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                username:
+                                    type: string
+                                    description: Unique username for the account
+                                    example: 'john_doe'
+                                password:
+                                    type: string
+                                    description: Password for the account
+                                    example: 'securepassword123'
+                                email:
+                                    type: string
+                                    format: email
+                                    description: Email address for the account
+                                    example: 'john@example.com'
+                            required:
+                                - username
+                                - password
+                                - email
+            responses:
+                '201':
+                    description: User registered successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'User registered successfully'
+                '400':
+                    description: Bad request - missing required fields
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Username, password, and email are required'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'User already exists or database error'
+
+    /login:
+        post:
+            summary: Login user
+            description: Authenticate user and return JWT token
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                username:
+                                    type: string
+                                    description: Username for login (use either username or email)
+                                    example: 'john_doe'
+                                email:
+                                    type: string
+                                    format: email
+                                    description: Email for login (use either username or email)
+                                    example: 'john@example.com'
+                                password:
+                                    type: string
+                                    description: Password for authentication
+                                    example: 'securepassword123'
+                            required:
+                                - password
+                            oneOf:
+                                - required: ['username']
+                                - required: ['email']
+            responses:
+                '200':
+                    description: Login successful
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    token:
+                                        type: string
+                                        description: JWT token for authentication
+                                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                '400':
+                    description: Bad request - invalid input
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Username or email required'
+                '401':
+                    description: Unauthorized - invalid credentials
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Invalid credentials'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Error generating token'
+
+    /protected-ping:
+        get:
+            summary: Protected health check
+            description: Health check endpoint that requires authentication
+            security:
+                - BearerAuth: []
+            responses:
+                '200':
+                    description: Protected endpoint accessible
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: 'pong from protected endpoint, user ID: 123'
+                '401':
+                    description: Unauthorized - missing or invalid token
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Unauthorized access'
+
+    /messages:
+        post:
+            summary: Send a message
+            description: Send a message to a specific channel
+            security:
+                - BearerAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                channel_id:
+                                    type: integer
+                                    description: ID of the channel to send message to
+                                    example: 1
+                                content:
+                                    type: string
+                                    description: Message content
+                                    example: 'Hello, world!'
+                            required:
+                                - channel_id
+                                - content
+            responses:
+                '201':
+                    description: Message sent successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: 'Message sent successfully'
+                '400':
+                    description: Bad request - invalid request body
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Invalid request body'
+                '401':
+                    description: Unauthorized - missing or invalid token
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Unauthorized'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: string
+                                        example: 'Failed to send message'
+
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+            description: JWT token obtained from login endpoint
+
+    schemas:
+        Error:
             type: object
             properties:
-              username:
-                type: string
-                example: "john_doe"
-              password:
-                type: string
-                example: "securepassword123"
-              email:
-                type: string
-                example: "test@example.com"
+                error:
+                    type: string
+                    description: Error message
+                    example: 'Error message here'
             required:
-              - password
-              - oneOf:
-                  - username
-                  - email
+                - error
+
+        Success:
+            type: object
+            properties:
+                message:
+                    type: string
+                    description: Success message
+                    example: 'Operation completed successfully'
+            required:
+                - message
+
+        AuthToken:
+            type: object
+            properties:
+                token:
+                    type: string
+                    description: JWT authentication token
+                    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            required:
+                - token

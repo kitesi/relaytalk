@@ -12,7 +12,7 @@ func ProtectedPing(store *db.Queries) http.HandlerFunc {
 		userID, ok := GetUserIDFromContext(r.Context())
 
 		if !ok {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			sendJsonError(w, http.StatusUnauthorized, "Unauthorized access")
 			return
 		}
 
